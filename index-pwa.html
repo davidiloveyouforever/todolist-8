@@ -17,6 +17,7 @@
     <div class="container">
         <header>
             <h1>📝 待辦事項清單</h1>
+            <button id="installPWA" class="install-pwa-btn" style="display: none;">📱 安裝APP</button>
         </header>
 
         <!-- 新增待辦事項表單 -->
@@ -149,12 +150,14 @@
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
+                    this.showInstallButton();
                     this.showInstallPrompt();
                 });
 
                 // 監聽安裝完成
                 window.addEventListener('appinstalled', () => {
                     this.hideInstallPrompt();
+                    this.hideInstallButton();
                     this.showNotification('APP已成功安裝到主畫面！', 'success');
                 });
 
@@ -180,6 +183,36 @@
                         .catch(error => {
                             console.log('ServiceWorker registration failed:', error);
                         });
+                }
+
+                // 檢查是否已經安裝
+                this.checkIfInstalled();
+            }
+
+            showInstallButton() {
+                const installBtn = document.getElementById('installPWA');
+                if (installBtn) {
+                    installBtn.style.display = 'block';
+                }
+            }
+
+            hideInstallButton() {
+                const installBtn = document.getElementById('installPWA');
+                if (installBtn) {
+                    installBtn.style.display = 'none';
+                }
+            }
+
+            checkIfInstalled() {
+                // 檢查是否在獨立模式下運行（已安裝）
+                if (window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true) {
+                    this.hideInstallButton();
+                } else {
+                    // 如果沒有安裝，顯示安裝按鈕
+                    setTimeout(() => {
+                        this.showInstallButton();
+                    }, 2000);
                 }
             }
 
@@ -213,6 +246,12 @@
 
                 // 儲存編輯
                 document.getElementById('saveEditBtn').addEventListener('click', () => this.saveEdit());
+
+                // PWA 安裝按鈕
+                const installBtn = document.getElementById('installPWA');
+                if (installBtn) {
+                    installBtn.addEventListener('click', () => this.installApp());
+                }
             }
 
             setDefaultDate() {
@@ -487,6 +526,11 @@
 
             // PWA 相關方法
             showInstallPrompt() {
+                // 檢查是否已經有安裝提示
+                if (document.getElementById('installPrompt')) {
+                    return;
+                }
+
                 // 創建安裝提示
                 const installPrompt = document.createElement('div');
                 installPrompt.id = 'installPrompt';
@@ -504,6 +548,11 @@
                 // 綁定按鈕事件
                 document.getElementById('installBtn').addEventListener('click', () => this.installApp());
                 document.getElementById('dismissInstall').addEventListener('click', () => this.hideInstallPrompt());
+                
+                // 3秒後自動隱藏
+                setTimeout(() => {
+                    this.hideInstallPrompt();
+                }, 10000);
             }
 
             hideInstallPrompt() {
@@ -519,12 +568,41 @@
                     const { outcome } = await this.deferredPrompt.userChoice;
                     if (outcome === 'accepted') {
                         console.log('User accepted the install prompt');
+                        this.showNotification('APP安裝成功！', 'success');
                     } else {
                         console.log('User dismissed the install prompt');
+                        this.showNotification('安裝已取消', 'info');
                     }
                     this.deferredPrompt = null;
                     this.hideInstallPrompt();
+                } else {
+                    // 如果沒有 deferredPrompt，顯示手動安裝說明
+                    this.showManualInstallInstructions();
                 }
+            }
+
+            showManualInstallInstructions() {
+                const instructions = `
+                    <div class="manual-install-modal">
+                        <div class="manual-install-content">
+                            <h3>📱 手動安裝說明</h3>
+                            <div class="install-steps">
+                                <h4>Android (Chrome):</h4>
+                                <p>1. 點擊瀏覽器選單 (⋮)</p>
+                                <p>2. 選擇「安裝應用程式」</p>
+                                <p>3. 點擊「安裝」</p>
+                                
+                                <h4>iOS (Safari):</h4>
+                                <p>1. 點擊分享按鈕 (□↑)</p>
+                                <p>2. 選擇「加入主畫面」</p>
+                                <p>3. 點擊「新增」</p>
+                            </div>
+                            <button onclick="this.parentElement.parentElement.remove()" class="close-btn">關閉</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', instructions);
             }
 
             updateConnectionStatus() {
