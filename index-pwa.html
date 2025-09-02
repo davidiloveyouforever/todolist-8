@@ -20,6 +20,15 @@
             <button id="installPWA" class="install-pwa-btn" style="display: none;">📱 安裝APP</button>
         </header>
 
+        <!-- PWA 安裝提示區域 -->
+        <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
+            <div class="banner-content">
+                <span>📱 將此APP安裝到手機主畫面，享受更好的使用體驗！</span>
+                <button id="bannerInstallBtn" class="banner-install-btn">安裝</button>
+                <button id="bannerDismissBtn" class="banner-dismiss-btn">稍後</button>
+            </div>
+        </div>
+
         <!-- 新增待辦事項表單 -->
         <div class="add-form">
             <div class="input-group">
@@ -187,13 +196,22 @@
 
                 // 檢查是否已經安裝
                 this.checkIfInstalled();
+                
+                // 強制顯示安裝按鈕（用於GitHub Pages）
+                setTimeout(() => {
+                    this.showInstallButton();
+                }, 3000);
             }
 
             showInstallButton() {
                 const installBtn = document.getElementById('installPWA');
                 if (installBtn) {
                     installBtn.style.display = 'block';
+                    installBtn.style.animation = 'pulse 2s infinite';
                 }
+                
+                // 同時顯示橫幅
+                this.showInstallBanner();
             }
 
             hideInstallButton() {
@@ -201,6 +219,9 @@
                 if (installBtn) {
                     installBtn.style.display = 'none';
                 }
+                
+                // 同時隱藏橫幅
+                this.hideInstallBanner();
             }
 
             checkIfInstalled() {
@@ -251,6 +272,18 @@
                 const installBtn = document.getElementById('installPWA');
                 if (installBtn) {
                     installBtn.addEventListener('click', () => this.installApp());
+                }
+
+                // PWA 橫幅安裝按鈕
+                const bannerInstallBtn = document.getElementById('bannerInstallBtn');
+                if (bannerInstallBtn) {
+                    bannerInstallBtn.addEventListener('click', () => this.installApp());
+                }
+
+                // PWA 橫幅關閉按鈕
+                const bannerDismissBtn = document.getElementById('bannerDismissBtn');
+                if (bannerDismissBtn) {
+                    bannerDismissBtn.addEventListener('click', () => this.hideInstallBanner());
                 }
             }
 
