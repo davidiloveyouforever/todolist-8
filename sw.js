@@ -1,7 +1,7 @@
-const CACHE_NAME = 'todo-app-v1.3';
+const CACHE_NAME = 'todo-app-v1.4';
 const urlsToCache = [
   './',
-  './index-pwa.html',
+  './index.html',
   './styles.css',
   './manifest.json',
   './icons/icon-72x72.png',
@@ -75,7 +75,7 @@ self.addEventListener('fetch', (event) => {
         ).catch(() => {
           // 網路請求失敗時，嘗試返回預設頁面
           if (event.request.destination === 'document') {
-            return caches.match('./index-pwa.html');
+            return caches.match('./index.html');
           }
         });
       })
